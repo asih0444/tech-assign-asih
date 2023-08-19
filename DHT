@@ -1,0 +1,32 @@
+import time
+import requests
+import Adafruit_DHT
+
+# DHT11 sensor setup
+DHT_SENSOR = Adafruit_DHT.DHT11
+DHT_PIN = 4  # GPIO pin for DHT11 data
+
+# Ubidots token
+UBIDOTS_TOKEN = "BBFF-FVadVsFGjZLV6VRjyTdGtD6ANKzDD6"
+
+def read_dht():
+    humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
+    if humidity is not None and temperature is not None:
+        payload = {'temperature': temperature, 'humidity': humidity}
+        return payload
+    else:
+        return None
+
+while True:
+    try:
+        dht_data = read_dht()
+
+        if dht_data is not None:
+            print('Posting DHT11 data to Ubidots')
+            print(dht_data)
+            r_dht = requests.post(f'http://industrial.api.ubidots.com/api/v1.6/devices/raspberry_dht/?token={UBIDOTS_TOKEN}', data=dht_data)
+
+    except Exception as e:
+        print(f'Error: {e}')
+
+    time.sleep(1)
